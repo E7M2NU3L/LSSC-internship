@@ -1,12 +1,13 @@
 # grad_analyser
 
-# Dataset - https://github.com/codebrainz/color-names/blob/master/output/colors.csv
-
 import cv2
 import pandas as pd
 
 img_path = 'image_1b.jpg'
 img = cv2.imread(img_path)
+img = cv2.resize(img,(500,500))
+import numpy as np
+
 
 # declaring global variables (are used later on)
 clicked = False
@@ -46,14 +47,14 @@ cv2.setMouseCallback('image', draw_function)
 
 while True:
 
-    cv2.imshow("image", img)
+    cv2.imshow("image",img)
     if clicked:
 
         # cv2.rectangle(image, start point, endpoint, color, thickness)-1 fills entire rectangle
         cv2.rectangle(img, (20, 20), (750, 60), (b, g, r), -1)
 
         # Creating text string to display( Color name and RGB values )
-        text = get_color_name(r, g, b) + ' R=' + str(r) + ' G=' + str(g) + ' B=' + str(b)
+        text = get_color_name(r, g, b) + ' ( R=' + str(r) + ' G=' + str(g) + ' B=' + str(b)+' )'
 
         # cv2.putText(img,text,start,font(0-7),fontScale,color,thickness,lineType )
         cv2.putText(img, text, (50, 50), 2, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
