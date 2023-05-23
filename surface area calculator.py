@@ -20,12 +20,11 @@ class CameraApp:
         simp_btn = tk.Button(window, text="Try Simpson's Rule", command=lambda: self.calculate_method("simpson"))
         bound_btn = tk.Button(window, text="Try Boundary Approximation", command=lambda: self.calculate_method("boundary"))
         picks_btn = tk.Button(window, text="Try Pick's Method", command=lambda: self.calculate_method("picks"))
-
         trap_btn.pack()
         simp_btn.pack()
         bound_btn.pack()
         picks_btn.pack()
-
+        
         # Initialize the camera
         self.camera = cv2.VideoCapture(0)
 
@@ -36,11 +35,29 @@ class CameraApp:
         # Read a frame from the camera
         _, frame = self.camera.read()
 
-        # Convert the frame from OpenCV BGR format to RGB format
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+        frame = cv2.blur(frame,(8,8))
 
+        thresh_val = 128
+        thresh_max = 255
+
+        ret,thresh = cv2.threshold(frame,thresh_val,thresh_max,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        global area
+        area  = []
+        # Calculate the surface area for each contour
+        for contour in contours:
+            contour_area = cv2.contourArea(contour)
+            area = contour_area*0.0109
+            
+        
+        # Convert the frame from OpenCV BGR format to RGB format
+        # rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        cv2.drawContours(frame, contours, -1, (0, 255, 0), 2) 
         # Resize the frame to fit the label
-        resized_frame = cv2.resize(rgb_frame, (640, 480))
+        resized_frame = cv2.resize(frame, (640, 480))
 
         # Convert the frame to an ImageTk format
         image = Image.fromarray(resized_frame)
@@ -53,6 +70,7 @@ class CameraApp:
         # Schedule the next frame capture
         self.window.after(10, self.capture_video)
 
+    
     def calculate_method(self, method):
         # Read a frame from the camera
         _, frame = self.camera.read()
@@ -70,6 +88,8 @@ class CameraApp:
         elif method == "picks":
             # Perform Pick's method calculation
             result = self.picks_method(frame)
+        elif method == "contour":
+            result = self.listsurface()
         else:
             result = None
 
@@ -77,7 +97,7 @@ class CameraApp:
         if result is not None:
             tk.messagebox.showinfo("Calculation Result", f"The result using {method} is: {result}")
         else:
-            tk.messagebox.showwarning("Invalid Method", "Invalid method selected!")
+            tk.messagebox.showinfo("method run","method is calulated succesfully")
 
     def trapezoidal_rule(self, frame):
         # Perform trapezoidal rule calculation here
@@ -102,8 +122,9 @@ class CameraApp:
 
         # Perform trapezoidal numerical integration to calculate the surface area
         surface_area = trapz(y_coords, x_coords)
+        conv_factor = 0.0109
 
-        print("Surface Area:", surface_area)
+        print("Surface Area:", surface_area*conv_factor," cm squared")
 
 
     def simpsons_rule(self, frame):
@@ -131,7 +152,10 @@ class CameraApp:
         # Perform Simpson's 1/3 rule numerical integration to calculate the surface area
         surface_area = simps(y_coords, x_coords, even='first')
 
-        print("Surface Area:", surface_area)
+        conv_factor = 0.0109
+
+        print("Surface Area:", surface_area*conv_factor," cm squared")
+
 
     def boundary_approximation(self, frame):
         # Perform boundary approximation calculation here
@@ -163,7 +187,10 @@ class CameraApp:
         # Calculate the absolute value of the area
         surface_area = abs(signed_area) / 2
 
-        print("Surface Area:", surface_area)
+        conv_factor = 0.0109
+
+        print("Surface Area:", surface_area*conv_factor," cm squared")
+
 
     def picks_method(self, frame):
         # Perform Pick's method calculation here
@@ -187,7 +214,9 @@ class CameraApp:
         # Calculate the surface area of the approximated contour
         surface_area = cv2.contourArea(approximated_contour)
 
-        print("Surface Area:", surface_area)
+        conv_factor = 0.0109
+
+        print("Surface Area:", surface_area*conv_factor," cm squared")
 
 if __name__ == "__main__":
     # Create the main window
